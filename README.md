@@ -6,11 +6,11 @@ Lumina is a Generative AI-powered capstone project designed to help students dev
 
 ## 🤝 Team Roles
 
-- **Marcelo Delgado:** (Team Lead / Frontend): UI/UX Design, React Components, Calendar Integration.
+- **Marcelo Delgado:** (Team Lead / Frontend Developer): UI/UX Design, React Components, Calendar Integration.
 
 - **Joe Bowen:** (AI Engineer): Prompt Engineering, RAG Logic, Hugging Face Integration.
 
-- **Muzaffarbek Muratov:** (Backend Lead): Database Schema, API Routes, Constraint Logic.
+- **Muzaffarbek Muratov:** (Backend Developer): Database Schema, API Routes, Constraint Logic.
 
 ## 🛠️ Tech Stack
 

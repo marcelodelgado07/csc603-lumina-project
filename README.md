@@ -1,10 +1,10 @@
-# 🌟 Lumina: A Study Buddy That Listens
+# Lumina: A Study Buddy That Listens
 
 Lumina is a Generative AI-powered capstone project designed to help students develop better study habits.  Users will be able to input their available hours and study topics in order to create a study plan that works for them, without needing to go through hours of trial and error.
 
 ---
 
-## 🤝 Team Roles
+## Team Roles
 
 - **Marcelo Delgado:** (Team Lead / Frontend Developer): UI/UX Design, React Components, Calendar Integration.
 
@@ -12,17 +12,16 @@ Lumina is a Generative AI-powered capstone project designed to help students dev
 
 - **Muzaffarbek Muratov:** (Backend Developer): Database Schema, API Routes, Constraint Logic.
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Frontend:** React + Vite (TypeScript)
 - **Backend:** FastAPI (Python 3.11+)
-- **AI Engine:** Hugging Face Inference API (Mistral/Llama 3)
+- **AI Engine:** Hugging Face Inference API (Mistral/Llama 3) (exact model tbd)
 - **Database:** Supabase (PostgreSQL + Auth)
-- **Styling:** Tailwind CSS
 
 ---
 
-## 📦 Project Structure
+## Project Structure
 
 ```text
 lumina/

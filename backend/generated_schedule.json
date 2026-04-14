@@ -1,0 +1,86 @@
+[
+  {
+    "id": 1,
+    "type": "study",
+    "class_name": "CSC 603 - Generative AI",
+    "start_time": "2025-07-07T08:00:00",
+    "end_time": "2025-07-07T08:50:00"
+  },
+  {
+    "id": 2,
+    "type": "break",
+    "class_name": "Rest",
+    "start_time": "2025-07-07T08:50:00",
+    "end_time": "2025-07-07T09:00:00"
+  },
+  {
+    "id": 3,
+    "type": "study",
+    "class_name": "CSC 510 - Analysis of Algorithms",
+    "start_time": "2025-07-07T09:00:00",
+    "end_time": "2025-07-07T09:50:00"
+  },
+  {
+    "id": 4,
+    "type": "break",
+    "class_name": "Rest",
+    "start_time": "2025-07-07T09:50:00",
+    "end_time": "2025-07-07T10:00:00"
+  },
+  {
+    "id": 5,
+    "type": "study",
+    "class_name": "CSC 648 - Software Engineering",
+    "start_time": "2025-07-07T10:00:00",
+    "end_time": "2025-07-07T10:50:00"
+  },
+  {
+    "id": 6,
+    "type": "break",
+    "class_name": "Rest",
+    "start_time": "2025-07-07T10:50:00",
+    "end_time": "2025-07-07T11:00:00"
+  },
+  {
+    "id": 7,
+    "type": "study",
+    "class_name": "CSC 510 - Analysis of Algorithms",
+    "start_time": "2025-07-07T11:00:00",
+    "end_time": "2025-07-07T11:50:00"
+  },
+  {
+    "id": 8,
+    "type": "break",
+    "class_name": "Rest",
+    "start_time": "2025-07-07T11:50:00",
+    "end_time": "2025-07-07T12:00:00"
+  },
+  {
+    "id": 9,
+    "type": "study",
+    "class_name": "CSC 648 - Software Engineering",
+    "start_time": "2025-07-07T12:00:00",
+    "end_time": "2025-07-07T12:50:00"
+  },
+  {
+    "id": 10,
+    "type": "break",
+    "class_name": "Rest",
+    "start_time": "2025-07-07T12:50:00",
+    "end_time": "2025-07-07T13:00:00"
+  },
+  {
+    "id": 11,
+    "type": "study",
+    "class_name": "CSC 603 - Generative AI",
+    "start_time": "2025-07-07T13:00:00",
+    "end_time": "2025-07-07T13:50:00"
+  },
+  {
+    "id": 12,
+    "type": "break",
+    "class_name": "Rest",
+    "start_time": "2025-07-07T13:50:00",
+    "end_time": "2025-07-07T14:00:00"
+  }
+]

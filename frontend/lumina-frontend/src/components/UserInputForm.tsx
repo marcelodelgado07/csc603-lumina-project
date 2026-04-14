@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import './UserInputForm.css';
+import { useState } from "react";
+import "./UserInputForm.css";
 
 interface ClassInfo {
   id: string;
@@ -12,13 +12,17 @@ interface FormData {
   classes: ClassInfo[];
 }
 
-export function UserInputForm() {
+interface UserInputFormProps {
+  onBack?: () => void;
+}
+
+export function UserInputForm({ onBack }: UserInputFormProps) {
   const [formData, setFormData] = useState<FormData>({
     studyHoursPerWeek: 0,
     classes: [],
   });
 
-  const [newClassName, setNewClassName] = useState('');
+  const [newClassName, setNewClassName] = useState("");
   const [newClassCredits, setNewClassCredits] = useState(0);
 
   const handleStudyHoursChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -31,12 +35,12 @@ export function UserInputForm() {
 
   const handleAddClass = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (newClassName.trim() === '') {
-      alert('Please enter a class name');
+    if (newClassName.trim() === "") {
+      alert("Please enter a class name");
       return;
     }
     if (newClassCredits <= 0) {
-      alert('Please enter valid credit hours');
+      alert("Please enter valid credit hours");
       return;
     }
 
@@ -51,7 +55,7 @@ export function UserInputForm() {
       classes: [...prev.classes, newClass],
     }));
 
-    setNewClassName('');
+    setNewClassName("");
     setNewClassCredits(0);
   };
 
@@ -65,19 +69,26 @@ export function UserInputForm() {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (formData.classes.length === 0) {
-      alert('Please add at least one class');
+      alert("Please add at least one class");
       return;
     }
 
-    console.log('Form submitted:', formData);
+    console.log("Form submitted:", formData);
     // TODO: Send this data to your backend API
-    alert('Form submitted! Check console for data.');
+    alert("Form submitted! Check console for data.");
   };
 
   return (
     <div className="form-container">
+      {onBack && (
+        <button type="button" className="btn btn-back" onClick={onBack}>
+          ← Back to Home
+        </button>
+      )}
       <h1>Study Schedule Builder</h1>
-      <p className="subtitle">Tell us about your courses and study availability</p>
+      <p className="subtitle">
+        Tell us about your courses and study availability
+      </p>
 
       <form onSubmit={handleSubmit} className="user-form">
         <div className="form-section">
@@ -119,7 +130,9 @@ export function UserInputForm() {
                 max="5"
                 step="0.5"
                 value={newClassCredits}
-                onChange={(e) => setNewClassCredits(parseFloat(e.target.value) || 0)}
+                onChange={(e) =>
+                  setNewClassCredits(parseFloat(e.target.value) || 0)
+                }
                 placeholder="Credits"
                 className="input-field credits-input"
               />
@@ -130,7 +143,9 @@ export function UserInputForm() {
           </form>
 
           {formData.classes.length === 0 ? (
-            <p className="empty-state">No classes added yet. Add your first class above!</p>
+            <p className="empty-state">
+              No classes added yet. Add your first class above!
+            </p>
           ) : (
             <div className="classes-list">
               <table className="classes-table">
@@ -160,7 +175,10 @@ export function UserInputForm() {
                 </tbody>
               </table>
               <p className="total-credits">
-                Total Credits: <strong>{formData.classes.reduce((sum, cls) => sum + cls.credits, 0)}</strong>
+                Total Credits:{" "}
+                <strong>
+                  {formData.classes.reduce((sum, cls) => sum + cls.credits, 0)}
+                </strong>
               </p>
             </div>
           )}

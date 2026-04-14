@@ -1,17 +1,21 @@
+import { useState } from "react";
 import { UserInputForm } from "./components/UserInputForm";
+import { HomePage } from "./components/HomePage";
 import "./App.css";
-import StudyTile from "./components/StudyTile";
+
+type Page = "home" | "form";
 
 function App() {
+  const [currentPage, setCurrentPage] = useState<Page>("home");
+
   return (
     <div className="app">
-      <UserInputForm />
-      <StudyTile
-        classTitle="Math"
-        task="Review algebra"
-        studyTime={30}
-        isDone={false}
-      />
+      {currentPage === "home" && (
+        <HomePage onNavigateToForm={() => setCurrentPage("form")} />
+      )}
+      {currentPage === "form" && (
+        <UserInputForm onBack={() => setCurrentPage("home")} />
+      )}
     </div>
   );
 }

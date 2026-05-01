@@ -14,7 +14,7 @@ Usage:
     2. Run: python lumina_ai_test.py
 
 Dependencies:
-    pip install requests
+    pip install requests   
 """
 
 import json

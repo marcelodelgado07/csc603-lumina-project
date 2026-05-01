@@ -1,0 +1,42 @@
+{
+  "user": {
+    "user_id": 1,
+    "earliest_study_time": "08:00:00",
+    "latest_study_time": "21:00:00",
+    "total_weekly_hours_goal": 5,
+    "break_frequency": 50,
+    "break_duration": 10
+  },
+  "classes": [
+    {
+      "class_id": 101,
+      "class_name": "CSC 603 - Generative AI",
+      "class_start_time": "14:00:00",
+      "class_end_time": "15:15:00",
+      "class_days": ["Tuesday", "Thursday"],
+      "priority_level": 5,
+      "syllabus_url": "https://example.com/syllabi/csc603.pdf",
+      "is_completed": false
+    },
+    {
+      "class_id": 102,
+      "class_name": "CSC 510 - Analysis of Algorithms",
+      "class_start_time": "10:00:00",
+      "class_end_time": "11:15:00",
+      "class_days": ["Monday", "Wednesday"],
+      "priority_level": 4,
+      "syllabus_url": "https://example.com/syllabi/csc510.pdf",
+      "is_completed": false
+    },
+    {
+      "class_id": 103,
+      "class_name": "CSC 648 - Software Engineering",
+      "class_start_time": "16:00:00",
+      "class_end_time": "17:15:00",
+      "class_days": ["Monday", "Wednesday"],
+      "priority_level": 3,
+      "syllabus_url": "https://example.com/syllabi/csc648.pdf",
+      "is_completed": false
+    }
+  ]
+}

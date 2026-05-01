@@ -104,6 +104,28 @@ curl -X POST http://localhost:8000/generate-schedule \
 
 A `sample_request.json` is included in this directory.
 
+## Testing
+
+A `pytest` suite covers the route's main paths. The HuggingFace call is
+mocked, so the tests run in under a second and don't burn API quota.
+
+```bash
+cd backend
+pip install -r requirements-dev.txt
+pytest -v
+```
+
+What's covered:
+
+- `GET /` health check
+- Pydantic validation (missing fields, out-of-range `priority_level`,
+  empty body)
+- Missing-token path returns a clear 500
+- Happy path with a mocked AI response — schedule + warnings parsed
+- AI call failures surface as 502
+- Truncated JSON responses are recovered
+- Non-array responses (model refusals etc.) return 502
+
 ## Notes
 
 - The route imports helper functions (`build_messages`, `call_huggingface`,

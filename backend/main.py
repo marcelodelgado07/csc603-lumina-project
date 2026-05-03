@@ -59,33 +59,48 @@ _spec.loader.exec_module(lumina_ai)
 
 
 class UserPreferences(BaseModel):
-    """Schema 1: User Preferences"""
+    """
+    Schema 1: User Preferences
 
-    user_id: int
+    Only `total_weekly_hours_goal` is required from the client.
+    Everything else has a sensible default so the frontend can send a
+    minimal payload and the server fills in the rest.
+    """
+
+    total_weekly_hours_goal: int
+    user_id: int = 1
     earliest_study_time: str = Field(
-        ..., description="ISO 8601 time string, e.g. '08:00:00'"
+        "08:00:00", description="ISO 8601 time string, e.g. '08:00:00'"
     )
     latest_study_time: str = Field(
-        ..., description="ISO 8601 time string, e.g. '21:00:00'"
+        "22:00:00", description="ISO 8601 time string, e.g. '22:00:00'"
     )
-    total_weekly_hours_goal: int
     break_frequency: int = Field(
-        ..., description="Minutes of study before a break is needed"
+        50, description="Minutes of study before a break is needed"
     )
-    break_duration: int = Field(..., description="Length of each break in minutes")
+    break_duration: int = Field(10, description="Length of each break in minutes")
 
 
 class ClassData(BaseModel):
-    """Schema 2: Class Data"""
+    """
+    Schema 2: Class Data
 
-    class_id: int
+    Only `class_name` is required. `class_id` is auto-assigned in the
+    route if the client omits it (see generate_schedule below).
+    """
+
     class_name: str
-    class_start_time: str = Field(..., description="ISO 8601 time, e.g. '14:00:00'")
-    class_end_time: str = Field(..., description="ISO 8601 time, e.g. '15:15:00'")
-    class_days: List[str] = Field(
-        ..., description="e.g. ['Monday', 'Wednesday']"
+    class_id: Optional[int] = None
+    class_start_time: str = Field(
+        "", description="ISO 8601 time, e.g. '14:00:00'"
     )
-    priority_level: int = Field(..., ge=1, le=5)
+    class_end_time: str = Field(
+        "", description="ISO 8601 time, e.g. '15:15:00'"
+    )
+    class_days: List[str] = Field(
+        default_factory=list, description="e.g. ['Monday', 'Wednesday']"
+    )
+    priority_level: int = Field(3, ge=1, le=5)
     syllabus_url: Optional[str] = ""
     is_completed: bool = False
 
@@ -169,6 +184,14 @@ def generate_schedule(req: GenerateScheduleRequest) -> GenerateScheduleResponse:
     # The AI script's helpers expect plain dicts, not Pydantic objects.
     user_dict = req.user.model_dump()
     classes_dict = [c.model_dump() for c in req.classes]
+
+    # Auto-assign sequential class_ids when the client omits them.
+    # Lets the frontend send {"class_name": "..."} only.
+    next_id = 1
+    for c in classes_dict:
+        if c.get("class_id") is None:
+            c["class_id"] = next_id
+            next_id += 1
 
     try:
         messages = lumina_ai.build_messages(user_dict, classes_dict)

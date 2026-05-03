@@ -94,6 +94,45 @@ Generates a weekly study schedule.
 class lectures, or total study time that's far from the user's goal).
 An empty list means the schedule passed all checks.
 
+#### Defaults
+
+Only `user.total_weekly_hours_goal` and each class's `class_name` are
+required. The server fills in the rest, so the frontend can submit a
+minimal payload:
+
+| Field                          | Default                  |
+| ------------------------------ | ------------------------ |
+| `user.user_id`                 | `1`                      |
+| `user.earliest_study_time`     | `"08:00:00"`             |
+| `user.latest_study_time`       | `"22:00:00"`             |
+| `user.break_frequency`         | `50` (minutes)           |
+| `user.break_duration`          | `10` (minutes)           |
+| `class.class_id`               | auto-assigned `1, 2, 3…` |
+| `class.class_start_time`       | `""`                     |
+| `class.class_end_time`         | `""`                     |
+| `class.class_days`             | `[]`                     |
+| `class.priority_level`         | `3`                      |
+| `class.syllabus_url`           | `""`                     |
+| `class.is_completed`           | `false`                  |
+
+When `class_start_time` / `class_end_time` / `class_days` are blank,
+the schedule generator has no lecture window to avoid for that class —
+overlap warnings won't fire for it.
+
+**Minimal payload example:**
+
+```json
+{
+  "user": { "total_weekly_hours_goal": 5 },
+  "classes": [
+    { "class_name": "CSC 603 - Generative AI" },
+    { "class_name": "CSC 510 - Analysis of Algorithms" }
+  ]
+}
+```
+
+A `sample_request_minimal.json` with this shape is included.
+
 ## Quick test from the command line
 
 ```bash

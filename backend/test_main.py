@@ -89,15 +89,16 @@ def test_health_check_returns_ok():
 
 
 def test_missing_user_fields_returns_422():
-    """Empty user object should fail with field-level errors."""
+    """
+    Empty user object should fail because total_weekly_hours_goal is the
+    only field without a server-side default.
+    """
     response = client.post(
         "/generate-schedule", json={"user": {}, "classes": []}
     )
     assert response.status_code == 422
 
     error_locs = {tuple(e["loc"]) for e in response.json()["detail"]}
-    assert ("body", "user", "user_id") in error_locs
-    assert ("body", "user", "earliest_study_time") in error_locs
     assert ("body", "user", "total_weekly_hours_goal") in error_locs
 
 
@@ -225,3 +226,73 @@ def test_non_array_response_returns_502(monkeypatch):
         response = client.post("/generate-schedule", json=SAMPLE_REQUEST)
 
     assert response.status_code == 502
+
+
+# ─────────────────────────────────────────────
+# Server-side defaults (for the frontend's minimal payload)
+# ─────────────────────────────────────────────
+
+
+def test_minimal_payload_succeeds(monkeypatch):
+    """
+    Frontend should be able to send just total_weekly_hours_goal +
+    class_name and have the server fill in the rest.
+    """
+    monkeypatch.setenv("HF_API_TOKEN", "fake-token-for-testing")
+
+    payload = {
+        "user": {"total_weekly_hours_goal": 5},
+        "classes": [{"class_name": "CSC 603"}],
+    }
+
+    with patch("main.lumina_ai.call_huggingface", return_value=FAKE_AI_RESPONSE):
+        response = client.post("/generate-schedule", json=payload)
+
+    assert response.status_code == 200
+    body = response.json()
+    assert isinstance(body["schedule"], list)
+    assert len(body["schedule"]) == 2
+
+
+def test_missing_total_weekly_hours_returns_422():
+    """total_weekly_hours_goal has no default — omitting it must fail."""
+    response = client.post(
+        "/generate-schedule",
+        json={"user": {}, "classes": [{"class_name": "CSC 603"}]},
+    )
+    assert response.status_code == 422
+
+    error_locs = {tuple(e["loc"]) for e in response.json()["detail"]}
+    assert ("body", "user", "total_weekly_hours_goal") in error_locs
+
+
+def test_class_ids_auto_assigned(monkeypatch):
+    """
+    Classes submitted without class_id should get sequential 1, 2, 3...
+    by the time they reach the AI helpers.
+    """
+    monkeypatch.setenv("HF_API_TOKEN", "fake-token-for-testing")
+
+    payload = {
+        "user": {"total_weekly_hours_goal": 5},
+        "classes": [
+            {"class_name": "CSC 603"},
+            {"class_name": "CSC 510"},
+        ],
+    }
+
+    captured = {}
+
+    def fake_build_messages(_user, classes):
+        captured["classes"] = classes
+        return []  # call_huggingface is mocked, so this return value is unused
+
+    with patch(
+        "main.lumina_ai.build_messages", side_effect=fake_build_messages
+    ), patch("main.lumina_ai.call_huggingface", return_value=FAKE_AI_RESPONSE):
+        response = client.post("/generate-schedule", json=payload)
+
+    assert response.status_code == 200
+    assert len(captured["classes"]) == 2
+    assert captured["classes"][0]["class_id"] == 1
+    assert captured["classes"][1]["class_id"] == 2

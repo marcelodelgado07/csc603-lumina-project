@@ -1,0 +1,16 @@
+{
+  "user": {
+    "total_weekly_hours_goal": 5
+  },
+  "classes": [
+    {
+      "class_name": "CSC 603 - Generative AI"
+    },
+    {
+      "class_name": "CSC 510 - Analysis of Algorithms"
+    },
+    {
+      "class_name": "CSC 648 - Software Engineering"
+    }
+  ]
+}

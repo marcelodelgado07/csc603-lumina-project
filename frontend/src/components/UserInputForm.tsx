@@ -469,7 +469,8 @@ export function UserInputForm({ onBack, onSubmit }: UserInputFormProps) {
             <span className="collapsible-icon">
               {expandedTimePreferences ? "▼" : "▶"}
             </span>
-            <span className="collapsible-title">⏰ Time Preferences</span>
+            {/* Title of the section */}
+            <span className="collapsible-title">Study Time Preferences</span>
             <span className="collapsible-subtitle">(Optional)</span>
           </button>
 
@@ -516,7 +517,8 @@ export function UserInputForm({ onBack, onSubmit }: UserInputFormProps) {
             <span className="collapsible-icon">
               {expandedBreakSettings ? "▼" : "▶"}
             </span>
-            <span className="collapsible-title">☕ Break Settings</span>
+            {/* Title of the section */}
+            <span className="collapsible-title">Break Preferences</span>
             <span className="collapsible-subtitle">(Optional)</span>
           </button>
 

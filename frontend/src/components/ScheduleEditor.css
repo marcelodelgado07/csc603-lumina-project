@@ -1,0 +1,436 @@
+/* ─── SCHEDULE EDITOR CONTAINER ─── */
+.schedule-editor-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+/* ─── HEADER ─── */
+.schedule-editor-header {
+  padding: 20px 30px;
+  background: rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.schedule-editor-title {
+  font-size: 1.5em;
+  font-weight: 700;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.schedule-editor-date {
+  font-size: 0.95em;
+  opacity: 0.9;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.header-spacer {
+  flex: 1;
+}
+
+/* ─── BUTTONS ─── */
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.95em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.btn-back-editor {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2px solid white;
+  padding: 8px 16px;
+}
+
+.btn-back-editor:hover {
+  background: white;
+  color: #667eea;
+  transform: translateY(-2px);
+}
+
+.btn-save-editor {
+  background: white;
+  color: #667eea;
+  padding: 10px 24px;
+}
+
+.btn-save-editor:hover:not(:disabled) {
+  background: #f0f0f0;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn-save-editor:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* ─── CALENDAR GRID WRAPPER ─── */
+.calendar-grid-wrapper {
+  flex: 1;
+  display: flex;
+  gap: 0;
+  padding: 20px 30px;
+  overflow: auto;
+}
+
+.time-axis {
+  width: 80px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.time-axis-header {
+  height: 50px;
+  flex-shrink: 0;
+  padding: 10px;
+}
+
+.time-slot {
+  position: relative;
+  padding: 5px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: flex-start;
+  font-size: 0.85em;
+  opacity: 0.8;
+}
+
+.time-label {
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* ─── CALENDAR GRID ─── */
+.calendar-grid {
+  flex: 1;
+  position: relative;
+  display: flex;
+  gap: 20px;
+  min-width: 400px;
+}
+
+.day-column {
+  flex: 1;
+  min-width: 350px;
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.day-header {
+  height: 50px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.day-name {
+  font-size: 1em;
+  font-weight: 700;
+}
+
+.day-slots-container {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.03);
+  overflow-y: auto;
+}
+
+.hour-row {
+  display: flex;
+  position: relative;
+  height: 60px; /* 60px per hour */
+  flex-shrink: 0;
+}
+
+.quarter-slot {
+  flex: 1;
+  height: 100%;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  position: relative;
+}
+
+.quarter-slot:not(:last-child) {
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* ─── SCHEDULE BLOCKS ─── */
+.schedule-block {
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin: 0 5px;
+  border-radius: 6px;
+  padding: 8px;
+  cursor: grab;
+  transition: box-shadow 0.2s ease;
+  border: 2px solid transparent;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  user-select: none;
+}
+
+.schedule-block:active {
+  cursor: grabbing;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+}
+
+.schedule-block:hover {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.study-block {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.9), rgba(118, 75, 162, 0.9));
+  color: white;
+}
+
+.break-block {
+  background: linear-gradient(135deg, rgba(200, 200, 210, 0.8), rgba(180, 180, 190, 0.8));
+  color: #333;
+}
+
+.block-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 0;
+}
+
+.block-title {
+  font-size: 0.9em;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.block-time {
+  font-size: 0.75em;
+  margin: 0;
+  opacity: 0.95;
+  white-space: nowrap;
+}
+
+/* ─── RESIZE HANDLE ─── */
+.resize-handle {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.3);
+  border-top: 2px solid rgba(255, 255, 255, 0.5);
+  cursor: ns-resize;
+  transition: all 0.2s ease;
+  margin: 0 -8px -8px -8px;
+}
+
+.schedule-block:hover .resize-handle {
+  background: rgba(255, 255, 255, 0.6);
+  border-top: 2px solid white;
+  height: 10px;
+}
+
+/* ─── FOOTER ─── */
+.schedule-editor-footer {
+  padding: 15px 30px;
+  background: rgba(0, 0, 0, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+}
+
+.instructions {
+  font-size: 0.9em;
+  opacity: 0.85;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* ─── SCROLLBAR STYLING ─── */
+.day-slots-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.day-slots-container::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.day-slots-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.day-slots-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.calendar-grid-wrapper::-webkit-scrollbar {
+  height: 8px;
+}
+
+.calendar-grid-wrapper::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.calendar-grid-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.calendar-grid-wrapper::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* ─── RESPONSIVE DESIGN ─── */
+@media (max-width: 1024px) {
+  .schedule-editor-header {
+    flex-wrap: wrap;
+    padding: 15px 20px;
+    gap: 10px;
+  }
+
+  .schedule-editor-title {
+    font-size: 1.2em;
+    flex: 1 1 auto;
+  }
+
+  .schedule-editor-date {
+    flex: 1 1 auto;
+  }
+
+  .header-spacer {
+    display: none;
+  }
+
+  .calendar-grid-wrapper {
+    padding: 15px 20px;
+  }
+
+  .time-axis {
+    width: 60px;
+  }
+
+  .time-label {
+    font-size: 0.75em;
+  }
+
+  .day-column {
+    min-width: 300px;
+  }
+
+  .hour-row {
+    height: 50px;
+  }
+
+  .block-title {
+    font-size: 0.8em;
+  }
+
+  .block-time {
+    font-size: 0.7em;
+  }
+}
+
+@media (max-width: 768px) {
+  .schedule-editor-container {
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .schedule-editor-header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 15px;
+  }
+
+  .schedule-editor-title {
+    width: 100%;
+    text-align: center;
+  }
+
+  .schedule-editor-date {
+    width: 100%;
+    text-align: center;
+  }
+
+  .btn-back-editor,
+  .btn-save-editor {
+    width: 100%;
+  }
+
+  .calendar-grid-wrapper {
+    flex-direction: column;
+    padding: 15px;
+    gap: 15px;
+  }
+
+  .time-axis {
+    display: none;
+  }
+
+  .day-column {
+    min-width: 100%;
+  }
+
+  .hour-row {
+    height: 45px;
+  }
+
+  .schedule-block {
+    margin: 0 2px;
+  }
+
+  .block-title {
+    font-size: 0.75em;
+  }
+
+  .block-time {
+    font-size: 0.65em;
+  }
+
+  .instructions {
+    font-size: 0.8em;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .day-column {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .day-slots-container {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .break-block {
+    background: linear-gradient(135deg, rgba(100, 100, 110, 0.9), rgba(80, 80, 90, 0.9));
+    color: #e0e0e0;
+  }
+}

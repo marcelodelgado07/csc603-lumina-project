@@ -34,6 +34,14 @@ interface UserInputFormProps {
   onSubmit?: (data: FormData) => void;
 }
 
+interface ScheduleBlock {
+  id: number;
+  type: "study" | "break";
+  class_name: string;
+  start_time: string;
+  end_time: string;
+}
+
 export function UserInputForm({ onBack, onSubmit }: UserInputFormProps) {
   const [formData, setFormData] = useState<FormData>({
     user: {
@@ -51,6 +59,7 @@ export function UserInputForm({ onBack, onSubmit }: UserInputFormProps) {
   const [expandedBreakSettings, setExpandedBreakSettings] = useState(false);
   const [expandedClassDetails, setExpandedClassDetails] =
     useState<ExpandedClassId>({});
+  const [isLoading, setIsLoading] = useState(false);
 
   const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 
@@ -169,6 +178,9 @@ export function UserInputForm({ onBack, onSubmit }: UserInputFormProps) {
       return;
     }
 
+    // Set loading state
+    setIsLoading(true);
+
     // Prepare data for backend (remove internal id field)
     const submissionData = {
       user: {
@@ -190,17 +202,52 @@ export function UserInputForm({ onBack, onSubmit }: UserInputFormProps) {
     };
 
     console.log("Form submitted:", submissionData);
-    if (onSubmit) {
-      onSubmit(submissionData as any);
-    } else {
-      alert("Form data ready (check console). Hook up to backend.");
-    }
+
+    // Simulate API call with timeout
+    setTimeout(() => {
+      // Generate a mock schedule for demonstration
+      const mockSchedule: ScheduleBlock[] = [
+        {
+          id: 1,
+          type: "study",
+          class_name: formData.classes[0]?.class_name || "Study Session",
+          start_time: "2025-07-07T08:00:00",
+          end_time: "2025-07-07T08:50:00",
+        },
+        {
+          id: 2,
+          type: "break",
+          class_name: "Rest",
+          start_time: "2025-07-07T08:50:00",
+          end_time: "2025-07-07T09:00:00",
+        },
+      ];
+
+      if (onSubmit) {
+        onSubmit(submissionData as any);
+      } else {
+        alert("Form data ready (check console). Hook up to backend.");
+      }
+
+      setIsLoading(false);
+    }, 2000); // 2 second delay to simulate API call
   };
 
   return (
-    <div className="form-container">
+    <div className={`form-container ${isLoading ? "loading" : ""}`}>
+      {isLoading && (
+        <div className="loading-overlay">
+          <div className="loading-spinner"></div>
+          <p className="loading-text">Generating your study schedule...</p>
+        </div>
+      )}
       {onBack && (
-        <button type="button" className="btn btn-back" onClick={onBack}>
+        <button
+          type="button"
+          className="btn btn-back"
+          onClick={onBack}
+          disabled={isLoading}
+        >
           ← Back to Home
         </button>
       )}
@@ -524,7 +571,7 @@ export function UserInputForm({ onBack, onSubmit }: UserInputFormProps) {
           )}
         </div>
 
-        <button type="submit" className="btn btn-submit">
+        <button type="submit" className="btn btn-submit" disabled={isLoading}>
           Generate Study Schedule
         </button>
       </form>

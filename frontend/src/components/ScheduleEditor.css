@@ -86,6 +86,7 @@
   gap: 0;
   padding: 20px 30px;
   overflow: auto;
+  min-height: 0;
 }
 
 .time-axis {
@@ -97,7 +98,7 @@
 }
 
 .time-axis-header {
-  height: 50px;
+  height: 60px;
   flex-shrink: 0;
   padding: 10px;
 }
@@ -110,6 +111,7 @@
   align-items: flex-start;
   font-size: 0.85em;
   opacity: 0.8;
+  min-height: 60px;
 }
 
 .time-label {
@@ -120,15 +122,14 @@
 /* ─── CALENDAR GRID ─── */
 .calendar-grid {
   flex: 1;
-  position: relative;
   display: flex;
-  gap: 20px;
-  min-width: 400px;
+  gap: 10px;
+  min-width: min-content;
 }
 
 .day-column {
   flex: 1;
-  min-width: 350px;
+  min-width: 180px;
   display: flex;
   flex-direction: column;
   background: rgba(255, 255, 255, 0.05);
@@ -138,18 +139,26 @@
 }
 
 .day-header {
-  height: 50px;
-  padding: 10px;
+  height: 60px;
+  padding: 8px 10px;
   background: rgba(255, 255, 255, 0.1);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+  gap: 4px;
 }
 
 .day-name {
-  font-size: 1em;
+  font-size: 0.9em;
   font-weight: 700;
+  margin: 0;
+}
+
+.day-date {
+  font-size: 0.75em;
+  opacity: 0.8;
 }
 
 .day-slots-container {
@@ -157,36 +166,31 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  background: rgba(255, 255, 255, 0.03);
-  overflow-y: auto;
+  background: rgba(255, 255, 255, 0.02);
+  overflow: visible;
+  min-height: 0;
 }
 
 .hour-row {
   display: flex;
   position: relative;
-  height: 60px; /* 60px per hour */
   flex-shrink: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .quarter-slot {
   flex: 1;
-  height: 100%;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  position: relative;
-}
-
-.quarter-slot:not(:last-child) {
   border-right: 1px solid rgba(255, 255, 255, 0.05);
+  position: relative;
 }
 
 /* ─── SCHEDULE BLOCKS ─── */
 .schedule-block {
   position: absolute;
-  left: 0;
-  right: 0;
-  margin: 0 5px;
+  left: 2px;
+  right: 2px;
   border-radius: 6px;
-  padding: 8px;
+  padding: 6px;
   cursor: grab;
   transition: box-shadow 0.2s ease;
   border: 2px solid transparent;
@@ -195,6 +199,7 @@
   justify-content: space-between;
   overflow: hidden;
   user-select: none;
+  z-index: 5;
 }
 
 .schedule-block:active {
@@ -227,16 +232,16 @@
 }
 
 .block-title {
-  font-size: 0.9em;
+  font-size: 0.85em;
   font-weight: 700;
-  margin: 0 0 4px 0;
+  margin: 0 0 3px 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .block-time {
-  font-size: 0.75em;
+  font-size: 0.7em;
   margin: 0;
   opacity: 0.95;
   white-space: nowrap;
@@ -244,18 +249,18 @@
 
 /* ─── RESIZE HANDLE ─── */
 .resize-handle {
-  height: 8px;
+  height: 6px;
   background: rgba(255, 255, 255, 0.3);
   border-top: 2px solid rgba(255, 255, 255, 0.5);
   cursor: ns-resize;
   transition: all 0.2s ease;
-  margin: 0 -8px -8px -8px;
+  margin: 0 -6px -6px -6px;
 }
 
 .schedule-block:hover .resize-handle {
   background: rgba(255, 255, 255, 0.6);
   border-top: 2px solid white;
-  height: 10px;
+  height: 8px;
 }
 
 /* ─── FOOTER ─── */
@@ -338,23 +343,19 @@
   }
 
   .time-label {
-    font-size: 0.75em;
+    font-size: 0.7em;
   }
 
   .day-column {
-    min-width: 300px;
-  }
-
-  .hour-row {
-    height: 50px;
+    min-width: 140px;
   }
 
   .block-title {
-    font-size: 0.8em;
+    font-size: 0.75em;
   }
 
   .block-time {
-    font-size: 0.7em;
+    font-size: 0.65em;
   }
 }
 
@@ -395,28 +396,28 @@
     display: none;
   }
 
+  .calendar-grid {
+    gap: 5px;
+  }
+
   .day-column {
     min-width: 100%;
   }
 
-  .hour-row {
-    height: 45px;
-  }
-
-  .schedule-block {
-    margin: 0 2px;
+  .day-header {
+    height: 50px;
   }
 
   .block-title {
-    font-size: 0.75em;
+    font-size: 0.7em;
   }
 
   .block-time {
-    font-size: 0.65em;
+    font-size: 0.6em;
   }
 
   .instructions {
-    font-size: 0.8em;
+    font-size: 0.75em;
   }
 }
 

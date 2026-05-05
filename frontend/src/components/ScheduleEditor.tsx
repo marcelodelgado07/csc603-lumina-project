@@ -40,21 +40,22 @@ interface ScheduleEditorProps {
 
 interface DragState {
   blockId: number;
-  originalTime: string;
-  isResizing: boolean;
   startY: number;
+  isResizing: boolean;
+  originalStartTime: string;
+  originalEndTime: string;
 }
 
 export function ScheduleEditor({ scheduleData, onBack }: ScheduleEditorProps) {
   const [blocks, setBlocks] = useState<ScheduleBlock[]>(scheduleData.blocks);
   const [dragState, setDragState] = useState<DragState | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const gridRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const HOURS_START = 6;
   const HOURS_END = 24;
   const MIN_SLOT = 15; // 15-minute increments
-  const PIXEL_HEIGHT_PER_MINUTE = 1; // 1 pixel per minute
+  const HOUR_HEIGHT = 60; // pixels per hour
 
   // Load saved schedule from localStorage on component mount
   useEffect(() => {
@@ -77,19 +78,24 @@ export function ScheduleEditor({ scheduleData, onBack }: ScheduleEditorProps) {
     });
   };
 
-  const getBlockPosition = (block: ScheduleBlock) => {
-    const startDate = new Date(block.start_time);
-    const endDate = new Date(block.end_time);
+  const getWeekStart = (date: Date): Date => {
+    const d = new Date(date);
+    const day = d.getDay();
+    const diff = d.getDate() - day;
+    return new Date(d.setDate(diff));
+  };
 
-    const startMinutes = startDate.getHours() * 60 + startDate.getMinutes();
-    const endMinutes = endDate.getHours() * 60 + endDate.getMinutes();
+  const getTimePosition = (dateTimeString: string): number => {
+    const date = new Date(dateTimeString);
+    const minutes = date.getHours() * 60 + date.getMinutes();
+    const offsetMinutes = minutes - HOURS_START * 60;
+    return (offsetMinutes / 60) * HOUR_HEIGHT;
+  };
 
-    const duration = endMinutes - startMinutes;
-    const topOffset =
-      (startMinutes - HOURS_START * 60) * PIXEL_HEIGHT_PER_MINUTE;
-    const height = duration * PIXEL_HEIGHT_PER_MINUTE;
-
-    return { topOffset, height, startMinutes, endMinutes, duration };
+  const getDuration = (startTime: string, endTime: string): number => {
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+    return (end.getTime() - start.getTime()) / (1000 * 60);
   };
 
   const snapToGrid = (minutes: number): number => {
@@ -101,83 +107,88 @@ export function ScheduleEditor({ scheduleData, onBack }: ScheduleEditorProps) {
     block: ScheduleBlock,
     isResize: boolean = false,
   ) => {
-    if (isResize) {
-      e.preventDefault();
-      setDragState({
-        blockId: block.id,
-        originalTime: block.end_time,
-        isResizing: true,
-        startY: e.clientY,
-      });
-    } else {
-      e.preventDefault();
-      setDragState({
-        blockId: block.id,
-        originalTime: block.start_time,
-        isResizing: false,
-        startY: e.clientY,
-      });
-    }
+    e.preventDefault();
+    e.stopPropagation();
+
+    const scrollOffset = containerRef.current?.scrollTop || 0;
+
+    setDragState({
+      blockId: block.id,
+      startY: e.clientY + scrollOffset,
+      isResizing: isResize,
+      originalStartTime: block.start_time,
+      originalEndTime: block.end_time,
+    });
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!dragState || !gridRef.current) return;
+    if (!dragState) return;
 
-    const deltaY = e.clientY - dragState.startY;
-    const deltaMinutes = snapToGrid(deltaY / PIXEL_HEIGHT_PER_MINUTE);
+    const scrollOffset = containerRef.current?.scrollTop || 0;
+    const deltaY = e.clientY + scrollOffset - dragState.startY;
+    const deltaMinutes = snapToGrid(deltaY / (HOUR_HEIGHT / 60));
 
     const block = blocks.find((b) => b.id === dragState.blockId);
     if (!block) return;
 
+    const originalStart = new Date(dragState.originalStartTime);
+    const originalEnd = new Date(dragState.originalEndTime);
+    const duration = getDuration(
+      dragState.originalStartTime,
+      dragState.originalEndTime,
+    );
+
     if (dragState.isResizing) {
-      // Resize: change end_time
-      const originalEndDate = new Date(block.end_time);
-      const originalEndMinutes =
-        originalEndDate.getHours() * 60 + originalEndDate.getMinutes();
-      const newEndMinutes = Math.max(
-        originalEndMinutes + deltaMinutes,
-        parseInt(block.start_time.split("T")[1].split(":")[0]) * 60 +
-          parseInt(block.start_time.split("T")[1].split(":")[1]) +
-          MIN_SLOT,
-      );
-
-      const newEndDate = new Date(block.end_time);
-      newEndDate.setHours(Math.floor(newEndMinutes / 60));
-      newEndDate.setMinutes(newEndMinutes % 60);
-
-      // Validate no overlap with next block
-      const nextBlock = blocks.find(
-        (b) => b.start_time > block.end_time && b.id !== block.id,
-      );
-      if (!nextBlock || newEndDate <= new Date(nextBlock.start_time)) {
-        setBlocks((prevBlocks) =>
-          prevBlocks.map((b) =>
-            b.id === dragState.blockId
-              ? {
-                  ...b,
-                  end_time: newEndDate.toISOString().split(".")[0],
-                }
-              : b,
-          ),
-        );
-      }
-    } else {
-      // Drag: change start_time and end_time
-      const startDate = new Date(block.start_time);
-      const endDate = new Date(block.end_time);
-      const duration =
-        (new Date(block.end_time).getTime() -
-          new Date(block.start_time).getTime()) /
-        (1000 * 60);
-
-      const newStartMinutes = snapToGrid(
-        startDate.getHours() * 60 + startDate.getMinutes() + deltaMinutes,
-      );
-      const maxMinutes = HOURS_END * 60;
+      // Resize: adjust end_time only
+      const newEndMinutes =
+        originalEnd.getHours() * 60 + originalEnd.getMinutes() + deltaMinutes;
 
       if (
+        newEndMinutes -
+          (originalStart.getHours() * 60 + originalStart.getMinutes()) >=
+        MIN_SLOT
+      ) {
+        const newEnd = new Date(originalEnd);
+        newEnd.setHours(Math.floor(newEndMinutes / 60));
+        newEnd.setMinutes(newEndMinutes % 60);
+
+        // Check no overlap
+        const hasOverlap = blocks.some((b) => {
+          if (b.id === dragState.blockId) return false;
+
+          const bStart = new Date(b.start_time);
+          const bEnd = new Date(b.end_time);
+          const blockStart = new Date(dragState.originalStartTime);
+
+          if (bStart.toDateString() !== blockStart.toDateString()) return false;
+
+          return !(
+            newEnd <= bStart || new Date(dragState.originalStartTime) >= bEnd
+          );
+        });
+
+        if (!hasOverlap) {
+          setBlocks((prevBlocks) =>
+            prevBlocks.map((b) =>
+              b.id === dragState.blockId
+                ? { ...b, end_time: newEnd.toISOString().split(".")[0] }
+                : b,
+            ),
+          );
+        }
+      }
+    } else {
+      // Drag: move both start and end times
+      const newStartMinutes =
+        originalStart.getHours() * 60 +
+        originalStart.getMinutes() +
+        deltaMinutes;
+      const newEndMinutes = newStartMinutes + duration;
+
+      // Check bounds
+      if (
         newStartMinutes >= HOURS_START * 60 &&
-        newStartMinutes + duration <= maxMinutes
+        newEndMinutes <= HOURS_END * 60
       ) {
         // Check for overlaps
         const hasOverlap = blocks.some((b) => {
@@ -185,23 +196,27 @@ export function ScheduleEditor({ scheduleData, onBack }: ScheduleEditorProps) {
 
           const bStart = new Date(b.start_time);
           const bEnd = new Date(b.end_time);
-          const bStartMinutes = bStart.getHours() * 60 + bStart.getMinutes();
-          const bEndMinutes = bEnd.getHours() * 60 + bEnd.getMinutes();
+          const blockStart = new Date(dragState.originalStartTime);
 
-          return !(
-            newStartMinutes + duration <= bStartMinutes ||
-            newStartMinutes >= bEndMinutes
-          );
-        });
+          if (bStart.toDateString() !== blockStart.toDateString()) return false;
 
-        if (!hasOverlap) {
-          const newStart = new Date(block.start_time);
-          const newEnd = new Date(block.end_time);
+          const newStart = new Date(dragState.originalStartTime);
+          const newEnd = new Date(dragState.originalStartTime);
 
           newStart.setHours(Math.floor(newStartMinutes / 60));
           newStart.setMinutes(newStartMinutes % 60);
+          newEnd.setHours(Math.floor(newEndMinutes / 60));
+          newEnd.setMinutes(newEndMinutes % 60);
 
-          const newEndMinutes = newStartMinutes + duration;
+          return !(newEnd <= bStart || newStart >= bEnd);
+        });
+
+        if (!hasOverlap) {
+          const newStart = new Date(originalStart);
+          const newEnd = new Date(originalEnd);
+
+          newStart.setHours(Math.floor(newStartMinutes / 60));
+          newStart.setMinutes(newStartMinutes % 60);
           newEnd.setHours(Math.floor(newEndMinutes / 60));
           newEnd.setMinutes(newEndMinutes % 60);
 
@@ -227,14 +242,40 @@ export function ScheduleEditor({ scheduleData, onBack }: ScheduleEditorProps) {
 
   const handleSave = () => {
     setIsSaving(true);
-
-    // Save to localStorage
     localStorage.setItem("studySchedule", JSON.stringify(blocks));
 
     setTimeout(() => {
       setIsSaving(false);
       alert("Schedule saved successfully!");
     }, 500);
+  };
+
+  const getWeekDays = (): Date[] => {
+    if (blocks.length === 0) return [];
+
+    const firstBlockDate = new Date(blocks[0].start_time);
+    const weekStart = getWeekStart(firstBlockDate);
+    const days: Date[] = [];
+
+    for (let i = 0; i < 7; i++) {
+      const day = new Date(weekStart);
+      day.setDate(day.getDate() + i);
+      days.push(day);
+    }
+
+    return days;
+  };
+
+  const getBlocksForDay = (date: Date): ScheduleBlock[] => {
+    return blocks
+      .filter((block) => {
+        const blockDate = new Date(block.start_time);
+        return blockDate.toDateString() === date.toDateString();
+      })
+      .sort(
+        (a, b) =>
+          new Date(a.start_time).getTime() - new Date(b.start_time).getTime(),
+      );
   };
 
   const getTimeSlots = (): number[] => {
@@ -245,25 +286,9 @@ export function ScheduleEditor({ scheduleData, onBack }: ScheduleEditorProps) {
     return slots;
   };
 
-  const getDayLabel = (dateTimeString: string): string => {
-    const date = new Date(dateTimeString);
-    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    return days[date.getDay()];
-  };
-
-  // Group blocks by day (simplified: assuming one day for demo)
-  const getBlocksForDay = (): ScheduleBlock[] => {
-    return blocks.sort(
-      (a, b) =>
-        new Date(a.start_time).getTime() - new Date(b.start_time).getTime(),
-    );
-  };
-
-  const dayDate =
-    blocks.length > 0 ? new Date(blocks[0].start_time) : new Date();
-  const dayLabel = getDayLabel(
-    blocks[0]?.start_time || new Date().toISOString(),
-  );
+  const weekDays = getWeekDays();
+  const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const weekStart = weekDays.length > 0 ? weekDays[0] : new Date();
 
   return (
     <div
@@ -279,8 +304,8 @@ export function ScheduleEditor({ scheduleData, onBack }: ScheduleEditorProps) {
         </button>
         <h1 className="schedule-editor-title">Schedule Editor</h1>
         <p className="schedule-editor-date">
-          {dayDate.toLocaleDateString("en-US", {
-            weekday: "long",
+          Week of{" "}
+          {weekStart.toLocaleDateString("en-US", {
             month: "short",
             day: "numeric",
           })}
@@ -296,14 +321,15 @@ export function ScheduleEditor({ scheduleData, onBack }: ScheduleEditorProps) {
       </div>
 
       {/* Calendar Grid */}
-      <div className="calendar-grid-wrapper">
+      <div className="calendar-grid-wrapper" ref={containerRef}>
+        {/* Time Axis */}
         <div className="time-axis">
           <div className="time-axis-header"></div>
           {getTimeSlots().map((hour) => (
             <div
               key={hour}
               className="time-slot"
-              style={{ height: `${60 * PIXEL_HEIGHT_PER_MINUTE}px` }}
+              style={{ height: `${HOUR_HEIGHT}px` }}
             >
               <span className="time-label">
                 {String(hour).padStart(2, "0")}:00
@@ -312,63 +338,84 @@ export function ScheduleEditor({ scheduleData, onBack }: ScheduleEditorProps) {
           ))}
         </div>
 
-        <div className="calendar-grid" ref={gridRef}>
-          <div className="day-column">
-            <div className="day-header">
-              <span className="day-name">{dayLabel}</span>
-            </div>
-            <div className="day-slots-container">
-              {getTimeSlots().map((hour) => (
-                <div key={`slot-${hour}`} className="hour-row">
-                  {[0, 15, 30, 45].map((min) => (
-                    <div
-                      key={`slot-${hour}-${min}`}
-                      className="quarter-slot"
-                    ></div>
-                  ))}
+        {/* Day Columns */}
+        <div className="calendar-grid">
+          {weekDays.map((date, dayIndex) => {
+            const dayBlocksList = getBlocksForDay(date);
+            const dayLabel = dayLabels[date.getDay()];
+
+            return (
+              <div key={dayIndex} className="day-column">
+                <div className="day-header">
+                  <span className="day-name">{dayLabel}</span>
+                  <span className="day-date">{date.getDate()}</span>
                 </div>
-              ))}
-
-              {/* Render Schedule Blocks */}
-              {getBlocksForDay().map((block) => {
-                const { topOffset, height } = getBlockPosition(block);
-                const isStudy = block.type === "study";
-
-                return (
-                  <div
-                    key={block.id}
-                    className={`schedule-block ${isStudy ? "study-block" : "break-block"}`}
-                    style={{
-                      top: `${topOffset}px`,
-                      height: `${Math.max(height, 40)}px`,
-                    }}
-                    onMouseDown={(e) => handleBlockMouseDown(e, block, false)}
-                  >
-                    <div className="block-content">
-                      <p className="block-title">{block.class_name}</p>
-                      <p className="block-time">
-                        {formatTime(block.start_time)} -{" "}
-                        {formatTime(block.end_time)}
-                      </p>
-                    </div>
-
-                    {/* Resize Handle */}
+                <div className="day-slots-container">
+                  {/* Background Grid */}
+                  {getTimeSlots().map((hour) => (
                     <div
-                      className="resize-handle"
-                      onMouseDown={(e) => handleBlockMouseDown(e, block, true)}
-                    ></div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+                      key={`slot-${hour}`}
+                      className="hour-row"
+                      style={{ height: `${HOUR_HEIGHT}px` }}
+                    >
+                      {[0, 15, 30, 45].map((min) => (
+                        <div
+                          key={`slot-${hour}-${min}`}
+                          className="quarter-slot"
+                        ></div>
+                      ))}
+                    </div>
+                  ))}
+
+                  {/* Schedule Blocks */}
+                  {dayBlocksList.map((block) => {
+                    const topOffset = getTimePosition(block.start_time);
+                    const duration = getDuration(
+                      block.start_time,
+                      block.end_time,
+                    );
+                    const height = (duration / 60) * HOUR_HEIGHT;
+                    const isStudy = block.type === "study";
+
+                    return (
+                      <div
+                        key={block.id}
+                        className={`schedule-block ${isStudy ? "study-block" : "break-block"}`}
+                        style={{
+                          top: `${topOffset}px`,
+                          height: `${Math.max(height, 35)}px`,
+                        }}
+                        onMouseDown={(e) =>
+                          handleBlockMouseDown(e, block, false)
+                        }
+                      >
+                        <div className="block-content">
+                          <p className="block-title">{block.class_name}</p>
+                          <p className="block-time">
+                            {formatTime(block.start_time)} -{" "}
+                            {formatTime(block.end_time)}
+                          </p>
+                        </div>
+                        <div
+                          className="resize-handle"
+                          onMouseDown={(e) =>
+                            handleBlockMouseDown(e, block, true)
+                          }
+                        ></div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
       {/* Instructions */}
       <div className="schedule-editor-footer">
         <p className="instructions">
-          💡 Tip: Drag blocks to move them, drag the bottom edge to resize.
+          Tip: Drag blocks to move them, drag the bottom edge to resize.
           15-minute increments.
         </p>
       </div>

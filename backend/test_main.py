@@ -9,6 +9,7 @@ Run from backend/:
 """
 
 import json
+from datetime import date
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient
@@ -283,7 +284,7 @@ def test_class_ids_auto_assigned(monkeypatch):
 
     captured = {}
 
-    def fake_build_messages(_user, classes):
+    def fake_build_messages(_user, classes, week_start=None):
         captured["classes"] = classes
         return []  # call_huggingface is mocked, so this return value is unused
 
@@ -296,3 +297,71 @@ def test_class_ids_auto_assigned(monkeypatch):
     assert len(captured["classes"]) == 2
     assert captured["classes"][0]["class_id"] == 1
     assert captured["classes"][1]["class_id"] == 2
+
+
+# ─────────────────────────────────────────────
+# Date handling — week start is computed from today, not hardcoded
+# ─────────────────────────────────────────────
+
+
+def test_uses_current_week_dates(monkeypatch):
+    """
+    The system prompt's date range should reflect the current calendar
+    week, not the hardcoded 2025-07-07 week from the original AI script.
+    """
+    monkeypatch.setenv("HF_API_TOKEN", "fake-token-for-testing")
+
+    captured_messages = []
+
+    def capture_then_respond(messages):
+        captured_messages.append(messages)
+        return FAKE_AI_RESPONSE
+
+    fixed_today = date(2026, 5, 11)  # a Monday
+
+    with patch("main.date") as mock_date:
+        mock_date.today.return_value = fixed_today
+        with patch(
+            "main.lumina_ai.call_huggingface",
+            side_effect=capture_then_respond,
+        ):
+            response = client.post("/generate-schedule", json=SAMPLE_REQUEST)
+
+    assert response.status_code == 200
+    assert len(captured_messages) == 1
+
+    system_prompt = captured_messages[0][0]["content"]
+    assert "2026-05-11" in system_prompt
+    assert "2026-05-15" in system_prompt
+    # And, for the avoidance of doubt, the old hardcoded date is gone.
+    assert "2025-07-07" not in system_prompt
+
+
+def test_different_today_produces_different_dates(monkeypatch):
+    """
+    Two requests on different 'todays' should produce two different
+    system prompts — proving the week range is computed, not hardcoded.
+    """
+    monkeypatch.setenv("HF_API_TOKEN", "fake-token-for-testing")
+
+    captured_prompts = []
+
+    def capture(messages):
+        captured_prompts.append(messages[0]["content"])
+        return FAKE_AI_RESPONSE
+
+    for fixed_today in [date(2026, 5, 11), date(2026, 5, 18)]:
+        with patch("main.date") as mock_date:
+            mock_date.today.return_value = fixed_today
+            with patch(
+                "main.lumina_ai.call_huggingface", side_effect=capture
+            ):
+                response = client.post(
+                    "/generate-schedule", json=SAMPLE_REQUEST
+                )
+            assert response.status_code == 200
+
+    assert len(captured_prompts) == 2
+    assert captured_prompts[0] != captured_prompts[1]
+    assert "2026-05-11" in captured_prompts[0]
+    assert "2026-05-18" in captured_prompts[1]

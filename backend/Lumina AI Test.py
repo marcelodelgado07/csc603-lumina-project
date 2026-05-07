@@ -22,6 +22,7 @@ import re
 import requests
 import time
 import os
+from datetime import date, timedelta
 
 # ─────────────────────────────────────────────
 # Configuration
@@ -121,13 +122,31 @@ EXAMPLE_OUTPUT = [
 
 
 # ─────────────────────────────────────────────
+# Date helpers
+# ─────────────────────────────────────────────
+
+def next_monday_on_or_after(today: date) -> date:
+    """Return today if it's Monday, otherwise the next Monday."""
+    days_until_monday = (0 - today.weekday()) % 7
+    return today + timedelta(days=days_until_monday)
+
+
+# ─────────────────────────────────────────────
 # Build the Messages (OpenAI chat format)
 # ─────────────────────────────────────────────
 
-def build_messages(user: dict, classes: list[dict]) -> list[dict]:
+def build_messages(
+    user: dict,
+    classes: list[dict],
+    week_start: date | None = None,
+) -> list[dict]:
     """
     Constructs the chat messages for the OpenAI-compatible API.
     """
+
+    if week_start is None:
+        week_start = next_monday_on_or_after(date.today())
+    dates = [(week_start + timedelta(days=i)).isoformat() for i in range(5)]
 
     active_classes = [c for c in classes if not c.get("is_completed", False)]
     active_classes_sorted = sorted(
@@ -165,7 +184,7 @@ CRITICAL CONSTRAINTS:
 3. Each study block is exactly {block_len} minutes. Each break is exactly {user['break_duration']} minutes.
 4. Only schedule between {user['earliest_study_time']} and {user['latest_study_time']}.
 5. NEVER overlap with class lecture times.
-6. Spread blocks across Mon-Fri (2025-07-07 to 2025-07-11).
+6. Spread blocks across Mon-Fri ({dates[0]} to {dates[4]}).
 
 BLOCK DISTRIBUTION (by priority):
 {dist_str}
@@ -311,11 +330,18 @@ def extract_json(raw_text: str) -> list | dict:
 
 
 def validate_schedule(
-    schedule: list[dict], user: dict, classes: list[dict]
+    schedule: list[dict],
+    user: dict,
+    classes: list[dict],
+    week_start: date | None = None,
 ) -> list[str]:
     """
     Validates the generated schedule against user preferences and class data.
     """
+
+    if week_start is None:
+        week_start = next_monday_on_or_after(date.today())
+    dates = [(week_start + timedelta(days=i)).isoformat() for i in range(5)]
 
     warnings = []
 
@@ -341,11 +367,11 @@ def validate_schedule(
     seen_ids = set()
     valid_types = {"study", "break"}
     day_map = {
-        "2025-07-07": "Monday",
-        "2025-07-08": "Tuesday",
-        "2025-07-09": "Wednesday",
-        "2025-07-10": "Thursday",
-        "2025-07-11": "Friday",
+        dates[0]: "Monday",
+        dates[1]: "Tuesday",
+        dates[2]: "Wednesday",
+        dates[3]: "Thursday",
+        dates[4]: "Friday",
     }
 
     for block in schedule:

@@ -21,6 +21,7 @@ Docs available at: http://localhost:8000/docs
 
 import importlib.util
 import os
+from datetime import date
 from pathlib import Path
 from typing import List, Optional
 
@@ -193,8 +194,14 @@ def generate_schedule(req: GenerateScheduleRequest) -> GenerateScheduleResponse:
             c["class_id"] = next_id
             next_id += 1
 
+    # Anchor the schedule on the upcoming Monday so dates aren't stuck
+    # in the AI script's original 2025-07-07 hardcoded week.
+    week_start = lumina_ai.next_monday_on_or_after(date.today())
+
     try:
-        messages = lumina_ai.build_messages(user_dict, classes_dict)
+        messages = lumina_ai.build_messages(
+            user_dict, classes_dict, week_start=week_start
+        )
         raw = lumina_ai.call_huggingface(messages)
         schedule = lumina_ai.extract_json(raw)
     except Exception as e:
@@ -211,6 +218,8 @@ def generate_schedule(req: GenerateScheduleRequest) -> GenerateScheduleResponse:
             ),
         )
 
-    warnings = lumina_ai.validate_schedule(schedule, user_dict, classes_dict)
+    warnings = lumina_ai.validate_schedule(
+        schedule, user_dict, classes_dict, week_start=week_start
+    )
 
     return GenerateScheduleResponse(schedule=schedule, warnings=warnings)

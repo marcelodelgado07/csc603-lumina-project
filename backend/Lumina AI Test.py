@@ -23,6 +23,17 @@ import requests
 import time
 import os
 from datetime import date, timedelta
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Load .env from project root (one level up from backend/)
+env_path = Path(__file__).resolve().parent.parent / ".env"
+if env_path.exists():
+    load_dotenv(env_path)
+    print(f"✅ Loaded .env from {env_path}")
+else:
+    load_dotenv()  # fallback to current directory
+    print("⚠️  No .env in project root — trying current directory.")
 
 # ─────────────────────────────────────────────
 # Configuration
@@ -215,12 +226,12 @@ def call_huggingface(messages: list[dict]) -> str:
     """
 
     payload = {
-        "model": MODEL_ID,
-        "messages": messages,
-        "max_tokens": 8000,
-        "temperature": 0.2,
-        "top_p": 0.9,
-    }
+    "model": MODEL_ID,
+    "messages": messages,
+    "max_tokens": 8000,
+    "temperature": 0.7,
+    "top_p": 0.95,
+}
 
     for attempt in range(1, MAX_RETRIES + 1):
         print(f"\n🔄 Attempt {attempt}/{MAX_RETRIES} — Calling HuggingFace API...")

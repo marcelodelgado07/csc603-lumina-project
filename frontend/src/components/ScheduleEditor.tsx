@@ -70,6 +70,11 @@ export function ScheduleEditor({ scheduleData, onBack }: ScheduleEditorProps) {
     }
   }, []);
 
+  const toLocalTimeString = (date: Date): string => {
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+  };
+
   const formatTime = (dateTimeString: string): string => {
     const date = new Date(dateTimeString);
     return date.toLocaleTimeString("en-US", {
@@ -146,7 +151,8 @@ export function ScheduleEditor({ scheduleData, onBack }: ScheduleEditorProps) {
       if (
         newEndMinutes -
           (originalStart.getHours() * 60 + originalStart.getMinutes()) >=
-        MIN_SLOT
+          MIN_SLOT &&
+        newEndMinutes <= HOURS_END * 60
       ) {
         const newEnd = new Date(originalEnd);
         newEnd.setHours(Math.floor(newEndMinutes / 60));
@@ -171,7 +177,7 @@ export function ScheduleEditor({ scheduleData, onBack }: ScheduleEditorProps) {
           setBlocks((prevBlocks) =>
             prevBlocks.map((b) =>
               b.id === dragState.blockId
-                ? { ...b, end_time: newEnd.toISOString().split(".")[0] }
+                ? { ...b, end_time: toLocalTimeString(newEnd) }
                 : b,
             ),
           );
@@ -225,8 +231,8 @@ export function ScheduleEditor({ scheduleData, onBack }: ScheduleEditorProps) {
               b.id === dragState.blockId
                 ? {
                     ...b,
-                    start_time: newStart.toISOString().split(".")[0],
-                    end_time: newEnd.toISOString().split(".")[0],
+                    start_time: toLocalTimeString(newStart),
+                    end_time: toLocalTimeString(newEnd),
                   }
                 : b,
             ),
@@ -332,7 +338,9 @@ export function ScheduleEditor({ scheduleData, onBack }: ScheduleEditorProps) {
               style={{ height: `${HOUR_HEIGHT}px` }}
             >
               <span className="time-label">
-                {String(hour).padStart(2, "0")}:00
+                {hour > 12 ? hour - 12 : hour}:00
+                <br />
+                {hour < 12 ? "AM" : "PM"}
               </span>
             </div>
           ))}

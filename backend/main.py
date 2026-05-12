@@ -234,5 +234,3 @@ def generate_schedule(req: GenerateScheduleRequest) -> GenerateScheduleResponse:
 
     return GenerateScheduleResponse(schedule=schedule, warnings=warnings)
 
-
-    return GenerateScheduleResponse(schedule=schedule, warnings=warnings)

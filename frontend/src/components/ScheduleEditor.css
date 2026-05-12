@@ -223,6 +223,7 @@
 .break-block {
   background: linear-gradient(135deg, rgba(200, 200, 210, 0.8), rgba(180, 180, 190, 0.8));
   color: #333;
+  z-index: 6;
 }
 
 .block-content {

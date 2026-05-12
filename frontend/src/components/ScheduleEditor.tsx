@@ -276,20 +276,23 @@ export function ScheduleEditor({ scheduleData, onBack }: ScheduleEditorProps) {
   };
 
   const getWeekDays = (): Date[] => {
-    if (blocks.length === 0) return [];
-
-    const firstBlockDate = new Date(blocks[0].start_time);
-    const weekStart = getWeekStart(firstBlockDate);
-    const days: Date[] = [];
-
-    for (let i = 0; i < 7; i++) {
-      const day = new Date(weekStart);
-      day.setDate(day.getDate() + i);
-      days.push(day);
-    }
-
-    return days;
-  };
+      if (blocks.length === 0) return [];
+ 
+      const firstBlockDate = new Date(blocks[0].start_time);
+      const sundayStart = getWeekStart(firstBlockDate);
+      // Shift to Monday and only emit Mon-Fri (5 days), matching the backend.
+      const mondayStart = new Date(sundayStart);
+      mondayStart.setDate(mondayStart.getDate() + 1);
+ 
+      const days: Date[] = [];
+      for (let i = 0; i < 5; i++) {
+        const day = new Date(mondayStart);
+        day.setDate(day.getDate() + i);
+        days.push(day);
+      }
+ 
+      return days;
+    };
 
   const getBlocksForDay = (date: Date): ScheduleBlock[] => {
     return blocks

@@ -60,6 +60,7 @@ export function UserInputForm({ onBack, onSubmit }: UserInputFormProps) {
   const [expandedClassDetails, setExpandedClassDetails] =
     useState<ExpandedClassId>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 
@@ -165,7 +166,7 @@ export function UserInputForm({ onBack, onSubmit }: UserInputFormProps) {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (formData.user.total_weekly_hours_goal <= 0) {
@@ -178,10 +179,9 @@ export function UserInputForm({ onBack, onSubmit }: UserInputFormProps) {
       return;
     }
 
-    // Set loading state
     setIsLoading(true);
+    setError(null);
 
-    // Prepare data for backend (remove internal id field)
     const submissionData = {
       user: {
         total_weekly_hours_goal: formData.user.total_weekly_hours_goal,
@@ -201,36 +201,29 @@ export function UserInputForm({ onBack, onSubmit }: UserInputFormProps) {
       })),
     };
 
-    console.log("Form submitted:", submissionData);
-
-    // Simulate API call with timeout
-    setTimeout(() => {
-      // Generate a mock schedule for demonstration
-      const mockSchedule: ScheduleBlock[] = [
-        {
-          id: 1,
-          type: "study",
-          class_name: formData.classes[0]?.class_name || "Study Session",
-          start_time: "2025-07-07T08:00:00",
-          end_time: "2025-07-07T08:50:00",
-        },
-        {
-          id: 2,
-          type: "break",
-          class_name: "Rest",
-          start_time: "2025-07-07T08:50:00",
-          end_time: "2025-07-07T09:00:00",
-        },
-      ];
-
-      if (onSubmit) {
-        onSubmit(submissionData as any);
-      } else {
-        alert("Form data ready (check console). Hook up to backend.");
+    try {
+      const response = await fetch("http://localhost:8000/generate-schedule", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(submissionData),
+      });
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.detail || `Server error: ${response.status}`);
       }
-
+      const data = await response.json();
+      if (onSubmit) {
+        onSubmit({ ...submissionData, schedule: data.schedule } as any);
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to generate schedule. Is the backend running?",
+      );
+    } finally {
       setIsLoading(false);
-    }, 2000); // 2 second delay to simulate API call
+    }
   };
 
   return (
@@ -576,6 +569,7 @@ export function UserInputForm({ onBack, onSubmit }: UserInputFormProps) {
         <button type="submit" className="btn btn-submit" disabled={isLoading}>
           Generate Study Schedule
         </button>
+        {error && <p className="form-error">{error}</p>}
       </form>
 
       <p className="form-note">* Required fields</p>

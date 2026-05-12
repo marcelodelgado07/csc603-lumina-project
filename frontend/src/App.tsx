@@ -43,44 +43,11 @@ function App() {
   const [scheduleData, setScheduleData] = useState<ScheduleState | null>(null);
 
   const handleFormSubmit = (formData: any) => {
-    // Generate mock schedule for now
-    const mockSchedule: ScheduleBlock[] = [
-      {
-        id: 1,
-        type: "study",
-        class_name: formData.classes[0]?.class_name || "Study Session",
-        start_time: "2025-07-07T08:00:00",
-        end_time: "2025-07-07T08:50:00",
-      },
-      {
-        id: 2,
-        type: "break",
-        class_name: "Rest",
-        start_time: "2025-07-07T08:50:00",
-        end_time: "2025-07-07T09:00:00",
-      },
-      {
-        id: 3,
-        type: "study",
-        class_name: formData.classes[1]?.class_name || "Study Session",
-        start_time: "2025-07-07T09:00:00",
-        end_time: "2025-07-07T09:50:00",
-      },
-      {
-        id: 4,
-        type: "break",
-        class_name: "Rest",
-        start_time: "2025-07-07T09:50:00",
-        end_time: "2025-07-07T10:00:00",
-      },
-    ];
-
     setScheduleData({
-      blocks: mockSchedule,
+      blocks: formData.schedule,
       user: formData.user,
       classes: formData.classes,
     });
-
     setCurrentPage("schedule-editor");
   };
 

@@ -236,6 +236,18 @@
   overflow: hidden;
 }
 
+.block-kind {
+  font-size: 0.65em;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.75;
+  margin: 0 0 2px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .block-title {
   font-size: 0.85em;
   font-weight: 700;

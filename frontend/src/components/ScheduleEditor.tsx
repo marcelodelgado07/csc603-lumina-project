@@ -421,6 +421,7 @@ export function ScheduleEditor({ scheduleData, onBack }: ScheduleEditorProps) {
                         }
                       >
                         <div className="block-content">
+                          {isStudy && <p className="block-kind">Study</p>}
                           <p className="block-title">{block.class_name}</p>
                           {displayHeight >= 50 && (
                             <p className="block-time">

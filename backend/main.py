@@ -220,8 +220,19 @@ def generate_schedule(req: GenerateScheduleRequest) -> GenerateScheduleResponse:
             ),
         )
 
+    # Post-LLM safety net: backfill any classes the model dropped (Fix 1).\
+    # This guarantees every active class gets at least one study block,
+    # which is the bug Joe surfaced during testing with 6 classes.
+    schedule, backfill_msgs = backfill_missing_classes(
+        schedule, user_dict, classes_dict, week_start
+    )
     warnings = lumina_ai.validate_schedule(
         schedule, user_dict, classes_dict, week_start=week_start
     )
+
+    warnings.extend(backfill_msgs)
+
+    return GenerateScheduleResponse(schedule=schedule, warnings=warnings)
+
 
     return GenerateScheduleResponse(schedule=schedule, warnings=warnings)

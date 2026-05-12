@@ -51,6 +51,7 @@ export function ScheduleEditor({ scheduleData, onBack }: ScheduleEditorProps) {
   const [dragState, setDragState] = useState<DragState | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const daySlotRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const HOURS_START = 6;
   const HOURS_END = 24;
@@ -105,6 +106,19 @@ export function ScheduleEditor({ scheduleData, onBack }: ScheduleEditorProps) {
 
   const snapToGrid = (minutes: number): number => {
     return Math.round(minutes / MIN_SLOT) * MIN_SLOT;
+  };
+
+  const getTargetDayIndex = (clientX: number): number => {
+    for (let i = 0; i < daySlotRefs.current.length; i++) {
+      const ref = daySlotRefs.current[i];
+      if (ref) {
+        const rect = ref.getBoundingClientRect();
+        if (clientX >= rect.left && clientX <= rect.right) {
+          return i;
+        }
+      }
+    }
+    return -1;
   };
 
   const handleBlockMouseDown = (
@@ -184,30 +198,33 @@ export function ScheduleEditor({ scheduleData, onBack }: ScheduleEditorProps) {
         }
       }
     } else {
-      // Drag: move both start and end times
+      // Drag: move start/end times and potentially change day column
+      const targetDayIndex = getTargetDayIndex(e.clientX);
+      if (targetDayIndex === -1) return;
+      const targetDate = weekDays[targetDayIndex];
+
       const newStartMinutes =
         originalStart.getHours() * 60 +
         originalStart.getMinutes() +
         deltaMinutes;
       const newEndMinutes = newStartMinutes + duration;
 
-      // Check bounds
+      // Check time bounds
       if (
         newStartMinutes >= HOURS_START * 60 &&
         newEndMinutes <= HOURS_END * 60
       ) {
-        // Check for overlaps
+        // Check for overlaps on the target day
         const hasOverlap = blocks.some((b) => {
           if (b.id === dragState.blockId) return false;
 
           const bStart = new Date(b.start_time);
           const bEnd = new Date(b.end_time);
-          const blockStart = new Date(dragState.originalStartTime);
 
-          if (bStart.toDateString() !== blockStart.toDateString()) return false;
+          if (bStart.toDateString() !== targetDate.toDateString()) return false;
 
-          const newStart = new Date(dragState.originalStartTime);
-          const newEnd = new Date(dragState.originalStartTime);
+          const newStart = new Date(targetDate);
+          const newEnd = new Date(targetDate);
 
           newStart.setHours(Math.floor(newStartMinutes / 60));
           newStart.setMinutes(newStartMinutes % 60);
@@ -218,13 +235,15 @@ export function ScheduleEditor({ scheduleData, onBack }: ScheduleEditorProps) {
         });
 
         if (!hasOverlap) {
-          const newStart = new Date(originalStart);
-          const newEnd = new Date(originalEnd);
-
+          const newStart = new Date(targetDate);
           newStart.setHours(Math.floor(newStartMinutes / 60));
           newStart.setMinutes(newStartMinutes % 60);
+          newStart.setSeconds(0);
+
+          const newEnd = new Date(targetDate);
           newEnd.setHours(Math.floor(newEndMinutes / 60));
           newEnd.setMinutes(newEndMinutes % 60);
+          newEnd.setSeconds(0);
 
           setBlocks((prevBlocks) =>
             prevBlocks.map((b) =>
@@ -358,7 +377,10 @@ export function ScheduleEditor({ scheduleData, onBack }: ScheduleEditorProps) {
                   <span className="day-name">{dayLabel}</span>
                   <span className="day-date">{date.getDate()}</span>
                 </div>
-                <div className="day-slots-container">
+                <div
+                  className="day-slots-container"
+                  ref={(el) => { daySlotRefs.current[dayIndex] = el; }}
+                >
                   {/* Background Grid */}
                   {getTimeSlots().map((hour) => (
                     <div
@@ -383,6 +405,7 @@ export function ScheduleEditor({ scheduleData, onBack }: ScheduleEditorProps) {
                       block.end_time,
                     );
                     const height = (duration / 60) * HOUR_HEIGHT;
+                    const displayHeight = Math.max(height, 35);
                     const isStudy = block.type === "study";
 
                     return (
@@ -391,7 +414,7 @@ export function ScheduleEditor({ scheduleData, onBack }: ScheduleEditorProps) {
                         className={`schedule-block ${isStudy ? "study-block" : "break-block"}`}
                         style={{
                           top: `${topOffset}px`,
-                          height: `${Math.max(height, 35)}px`,
+                          height: `${displayHeight}px`,
                         }}
                         onMouseDown={(e) =>
                           handleBlockMouseDown(e, block, false)
@@ -399,10 +422,12 @@ export function ScheduleEditor({ scheduleData, onBack }: ScheduleEditorProps) {
                       >
                         <div className="block-content">
                           <p className="block-title">{block.class_name}</p>
-                          <p className="block-time">
-                            {formatTime(block.start_time)} -{" "}
-                            {formatTime(block.end_time)}
-                          </p>
+                          {displayHeight >= 50 && (
+                            <p className="block-time">
+                              {formatTime(block.start_time)} -{" "}
+                              {formatTime(block.end_time)}
+                            </p>
+                          )}
                         </div>
                         <div
                           className="resize-handle"

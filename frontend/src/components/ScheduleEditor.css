@@ -191,14 +191,14 @@
   position: absolute;
   left: 2px;
   right: 2px;
+  box-sizing: border-box;
   border-radius: 6px;
-  padding: 6px;
+  padding: 4px 6px;
   cursor: grab;
   transition: box-shadow 0.2s ease;
   border: 2px solid transparent;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   overflow: hidden;
   user-select: none;
   z-index: 5;
@@ -230,7 +230,9 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
+  line-height: 1.2;
   min-height: 0;
+  overflow: hidden;
 }
 
 .block-title {
@@ -251,18 +253,12 @@
 
 /* ─── RESIZE HANDLE ─── */
 .resize-handle {
-  height: 6px;
-  background: rgba(255, 255, 255, 0.3);
-  border-top: 2px solid rgba(255, 255, 255, 0.5);
-  cursor: ns-resize;
-  transition: all 0.2s ease;
-  margin: 0 -6px -6px -6px;
-}
-
-.schedule-block:hover .resize-handle {
-  background: rgba(255, 255, 255, 0.6);
-  border-top: 2px solid white;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
   height: 8px;
+  cursor: ns-resize;
 }
 
 /* ─── FOOTER ─── */

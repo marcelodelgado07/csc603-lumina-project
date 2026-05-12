@@ -52,6 +52,8 @@ if not _AI_SCRIPT_PATH.exists():
 _spec = importlib.util.spec_from_file_location("lumina_ai", _AI_SCRIPT_PATH)
 lumina_ai = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(lumina_ai)
+# Post-LLM safety net (Fix 1)
+from schedule_backfill import backfill_missing_classes
 
 
 # ─────────────────────────────────────────────

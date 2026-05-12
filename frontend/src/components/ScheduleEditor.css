@@ -237,15 +237,12 @@
 }
 
 .block-kind {
-  font-size: 0.65em;
+  font-size: 0.6em;
   font-weight: 600;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
+  opacity: 0.8;
+  margin: 0 0 1px 0;
   text-transform: uppercase;
-  opacity: 0.75;
-  margin: 0 0 2px 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .block-title {

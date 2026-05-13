@@ -2,6 +2,9 @@
 
 Lumina is a Generative AI-powered capstone project designed to help students develop better study habits.  Users will be able to input their available hours and study topics in order to create a study plan that works for them, without needing to go through hours of trial and error.
 
+<img width="1122" height="818" alt="Screenshot 2026-05-12 at 10 28 11 PM" src="https://github.com/user-attachments/assets/09343d0b-d418-46ab-852d-971d8893271a" />
+
+
 ---
 
 ## Team Roles
@@ -16,8 +19,8 @@ Lumina is a Generative AI-powered capstone project designed to help students dev
 
 - **Frontend:** React + Vite (TypeScript)
 - **Backend:** FastAPI (Python 3.11+)
-- **AI Engine:** Hugging Face Inference API (Mistral/Llama 3) (exact model tbd)
-- **Database:** Supabase (PostgreSQL + Auth)
+- **AI Engine:** Hugging Face Inference API (Llama 3.1 8B Instruct)
+- **Database:** Supabase (PostgreSQL + Auth) --> Future Implementation
 
 ---
 

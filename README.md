@@ -21,11 +21,10 @@ Lumina is a Generative AI-powered capstone project designed to help students dev
 
 ---
 
-## Project Structure
+## How To Run The Project
 
-```text
-lumina/
-├── frontend/           # React + Vite application
-├── backend/            # FastAPI server & AI logic
-├── .gitignore          # Files to ignore (node_modules, .env, etc.)
-└── README.md           # This file!
+1.     Change directory to 'backend' folder and run the command 'uvicorn main:app --reload --port 8000' in the terminal.
+2.     Change directory to 'frontend' folder and run the commands 'npm install', then 'npm run dev' in the terminal.
+3.     Open up the project through your localhost website link.
+
+
